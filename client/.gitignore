@@ -1,3 +1,4 @@
+node_modules/
 .env
-*.png
-node_modules
+dist/
+build/
