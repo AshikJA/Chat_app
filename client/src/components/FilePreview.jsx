@@ -11,22 +11,34 @@ export default function FilePreview({ file, onSend, onCancel }) {
   }, [file])
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.card}>
-        <div style={styles.previewContainer}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 bg-[#0a0a12]/90 backdrop-blur-md animate-fade-in">
+      <div className="w-full max-w-lg glass rounded-3xl p-6 shadow-2xl animate-slide-up overflow-hidden">
+        <div className="rounded-2xl overflow-hidden mb-5 bg-black/40 flex items-center justify-center max-h-[60vh] ring-1 ring-white/5">
           {isVideo ? (
-            <video controls src={preview} style={styles.media} />
+            <video controls src={preview} className="max-w-full max-h-full block" />
           ) : (
-            <img src={preview} alt="Preview" style={styles.media} />
+            <img src={preview} alt="Preview" className="max-w-full max-h-full object-contain block" />
           )}
         </div>
-        <div style={styles.info}>
-          <span style={styles.name}>{file.name}</span>
-          <span style={styles.size}>{formatSize(file.size)}</span>
+        
+        <div className="flex flex-col gap-1 mb-6">
+          <span className="text-white text-sm font-semibold truncate px-1">{file.name}</span>
+          <span className="text-slate-500 text-xs px-1">{formatSize(file.size)}</span>
         </div>
-        <div style={styles.actions}>
-          <button onClick={onCancel} style={styles.cancelBtn}>Cancel</button>
-          <button onClick={() => onSend(file)} style={styles.sendBtn}>Send</button>
+        
+        <div className="flex gap-3">
+          <button 
+            onClick={onCancel} 
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-all border border-white/5"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={() => onSend(file)} 
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-violet-600 hover:bg-violet-500 transition-all shadow-lg shadow-violet-600/20 active:scale-95"
+          >
+            Send File
+          </button>
         </div>
       </div>
     </div>
@@ -37,82 +49,4 @@ function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
-}
-
-const styles = {
-  overlay: {
-    position: 'fixed',
-    top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.7)',
-    zIndex: 9999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card: {
-    background: '#1a1a1a',
-    borderRadius: '16px',
-    padding: '24px',
-    maxWidth: '500px',
-    width: '90%',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  previewContainer: {
-    borderRadius: '12px',
-    overflow: 'hidden',
-    maxHeight: '400px',
-    background: '#000',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  media: {
-    maxWidth: '100%',
-    maxHeight: '400px',
-    objectFit: 'contain',
-    display: 'block',
-  },
-  info: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  name: {
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: 500,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  size: {
-    color: '#888',
-    fontSize: '12px',
-  },
-  actions: {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'flex-end',
-  },
-  cancelBtn: {
-    padding: '10px 24px',
-    borderRadius: '8px',
-    border: '1px solid #333',
-    background: 'transparent',
-    color: '#888',
-    fontSize: '14px',
-    cursor: 'pointer',
-  },
-  sendBtn: {
-    padding: '10px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    background: '#4f46e5',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
 }

@@ -28,6 +28,10 @@ export default function useSocket(token) {
 
     socket.on('disconnect', () => setIsConnected(false))
 
+    socket.on('user:list', (userIds) => {
+      setOnlineUsers(new Map(userIds.map((id) => [id, true])))
+    })
+
     socket.on('user:online', ({ userId }) => {
       setOnlineUsers((prev) => new Map(prev).set(userId, true))
     })

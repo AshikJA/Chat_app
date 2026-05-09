@@ -8,11 +8,7 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     const token = searchParams.get('token')
-    if (!token) {
-      setStatus('error')
-      setMessage('No verification token provided')
-      return
-    }
+    if (!token) { setStatus('error'); setMessage('No verification token provided'); return }
 
     fetch('/api/auth/verify-email', {
       method: 'POST',
@@ -21,102 +17,59 @@ export default function VerifyEmail() {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (data.message) {
-          setStatus('success')
-          setMessage(data.message)
+        if (data.message && !data.message.toLowerCase().includes('invalid')) {
+          setStatus('success'); setMessage(data.message)
         } else {
-          setStatus('error')
-          setMessage(data.message || 'Verification failed')
+          setStatus('error'); setMessage(data.message || 'Verification failed')
         }
       })
-      .catch(() => {
-        setStatus('error')
-        setMessage('Network error')
-      })
+      .catch(() => { setStatus('error'); setMessage('Network error') })
   }, [searchParams])
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        {status === 'verifying' && (
-          <>
-            <h1 style={styles.title}>Verifying...</h1>
-            <p style={styles.text}>Please wait while we verify your email.</p>
-          </>
-        )}
-        {status === 'success' && (
-          <>
-            <div style={styles.icon}>✓</div>
-            <h1 style={styles.title}>Email Verified!</h1>
-            <p style={styles.text}>{message}</p>
-            <Link to="/login" style={styles.button}>Go to Login</Link>
-          </>
-        )}
-        {status === 'error' && (
-          <>
-            <div style={{ ...styles.icon, background: '#e53935' }}>✕</div>
-            <h1 style={styles.title}>Verification Failed</h1>
-            <p style={styles.text}>{message}</p>
-            <Link to="/login" style={styles.button}>Back to Login</Link>
-          </>
-        )}
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'radial-gradient(ellipse at 60% 20%, rgba(124,58,237,0.15) 0%, transparent 60%), #0a0a12' }}
+    >
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="rounded-2xl p-10 flex flex-col items-center text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
+
+          {status === 'verifying' && (
+            <>
+              <div className="w-16 h-16 rounded-full border-4 border-violet-500/30 border-t-violet-500 mb-6" style={{ animation: 'spin 0.9s linear infinite' }} />
+              <h1 className="text-2xl font-bold text-white mb-2">Verifying…</h1>
+              <p className="text-slate-500 text-sm">Please wait while we verify your email.</p>
+            </>
+          )}
+
+          {status === 'success' && (
+            <>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2">Email Verified!</h1>
+              <p className="text-slate-400 text-sm mb-6">{message}</p>
+              <Link to="/login" className="btn-primary inline-block text-center">Go to Login</Link>
+            </>
+          )}
+
+          {status === 'error' && (
+            <>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2">Verification Failed</h1>
+              <p className="text-slate-400 text-sm mb-6">{message}</p>
+              <Link to="/login" className="btn-primary inline-block text-center">Back to Login</Link>
+            </>
+          )}
+
+        </div>
       </div>
     </div>
   )
-}
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#0f0f0f',
-  },
-  card: {
-    background: '#1a1a1a',
-    padding: '40px',
-    borderRadius: '12px',
-    width: '100%',
-    maxWidth: '400px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '16px',
-    boxSizing: 'border-box',
-  },
-  icon: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '50%',
-    background: '#4caf50',
-    color: '#fff',
-    fontSize: '28px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: '#fff',
-    fontSize: '24px',
-    textAlign: 'center',
-    margin: 0,
-  },
-  text: {
-    color: '#888',
-    fontSize: '14px',
-    textAlign: 'center',
-    margin: 0,
-  },
-  button: {
-    padding: '12px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    background: '#4f46e5',
-    color: '#fff',
-    fontSize: '15px',
-    fontWeight: 600,
-    cursor: 'pointer',
-    textDecoration: 'none',
-  },
 }

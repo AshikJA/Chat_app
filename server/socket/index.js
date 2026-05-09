@@ -29,17 +29,25 @@ module.exports = (io) => {
   io.on('connection', async (socket) => {
     const userId = socket.userId;
     onlineUsers.set(userId, socket.id);
+    socket.join(userId); // Join room named after MongoDB _id
 
     await User.findByIdAndUpdate(userId, { status: 'online' });
 
-    io.emit('user:online', { userId, status: 'online' });
+    // Send current online users list to the new user
+    socket.emit('user:list', Array.from(onlineUsers.keys()));
+    
+    // Broadcast to others that this user is online
+    socket.broadcast.emit('user:online', { userId, status: 'online' });
 
     socket.on('user:join', async () => {
       onlineUsers.set(userId, socket.id);
+      socket.join(userId);
       if (socket.appUserId) {
         socket.join(socket.appUserId);
       }
       await User.findByIdAndUpdate(userId, { status: 'online' });
+      
+      socket.emit('user:list', Array.from(onlineUsers.keys()));
       io.emit('user:online', { userId, status: 'online' });
     });
 
@@ -61,14 +69,16 @@ module.exports = (io) => {
 
         const populated = await message.populate('sender', 'name email avatar status');
 
-        const receiverSocketId = onlineUsers.get(receiverId);
-        if (receiverSocketId) {
+        const isReceiverOnline = onlineUsers.has(receiverId);
+        if (isReceiverOnline) {
           await Message.findByIdAndUpdate(message._id, { status: 'delivered' });
           populated.status = 'delivered';
-          io.to(receiverSocketId).emit('message:receive', {
+          // Emit to ALL tabs of the receiver
+          io.to(receiverId).emit('message:receive', {
             message: populated,
           });
-          io.to(socket.id).emit('message:delivered', { messageId: message._id });
+          // Emit to ALL tabs of the sender (to sync outgoing messages)
+          io.to(userId).emit('message:delivered', { messageId: message._id });
         }
 
         callback?.({ message: populated });
@@ -84,84 +94,66 @@ module.exports = (io) => {
           { status: 'seen' }
         );
         if (result.modifiedCount > 0) {
-          const senderSocketId = onlineUsers.get(senderId);
-          if (senderSocketId) {
-            io.to(senderSocketId).emit('message:seen', {
-              by: userId,
-            });
-          }
+          // Notify ALL tabs of the sender
+          io.to(senderId).emit('message:seen', {
+            by: userId,
+          });
         }
       } catch {}
     });
 
     socket.on('user:typing', (data) => {
       const { receiverId, isTyping } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('user:typing', {
-          userId,
-          isTyping,
-        });
-      }
+      io.to(receiverId).emit('user:typing', {
+        userId,
+        isTyping,
+      });
     });
 
     socket.on('call:initiate', (data) => {
       const { receiverId } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:incoming', {
-          from: userId,
-        });
-      }
+      io.to(receiverId).emit('call:incoming', {
+        from: userId,
+      });
     });
 
     socket.on('call:offer', (data) => {
       const { receiverId, offer } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:offer', {
-          from: userId,
-          offer,
-        });
-      }
+      io.to(receiverId).emit('call:offer', {
+        from: userId,
+        offer,
+      });
     });
 
     socket.on('call:answer', (data) => {
       const { receiverId, answer } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:answer', {
-          from: userId,
-          answer,
-        });
-      }
+      io.to(receiverId).emit('call:answer', {
+        from: userId,
+        answer,
+      });
     });
 
     socket.on('call:ice-candidate', (data) => {
       const { receiverId, candidate } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:ice-candidate', {
-          from: userId,
-          candidate,
-        });
-      }
+      io.to(receiverId).emit('call:ice-candidate', {
+        from: userId,
+        candidate,
+      });
     });
 
     socket.on('call:end', (data) => {
       const { receiverId } = data;
-      const receiverSocketId = onlineUsers.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('call:ended', {
-          from: userId,
-        });
-      }
+      io.to(receiverId).emit('call:ended', {
+        from: userId,
+      });
     });
 
     socket.on('disconnect', async () => {
-      onlineUsers.delete(userId);
-      await User.findByIdAndUpdate(userId, { status: 'offline' });
-      io.emit('user:offline', { userId, status: 'offline' });
+      if (onlineUsers.get(userId) === socket.id) {
+        onlineUsers.delete(userId);
+        await User.findByIdAndUpdate(userId, { status: 'offline' });
+        io.emit('user:offline', { userId, status: 'offline' });
+      }
     });
   });
 };

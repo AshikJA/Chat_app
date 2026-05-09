@@ -261,69 +261,88 @@ export default function VideoCall({
   }
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.container}>
-        {callStatus === CALL_STATUS.RINGING && (
-          <div style={styles.statusOverlay}>
-            <div style={styles.statusText}>Incoming call from {remoteUserName}...</div>
-            <div style={styles.ringingIcon}>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i} style={{ ...styles.ringBar, animationDelay: `${i * 0.2}s` }} />
-              ))}
-            </div>
+    <div className="fixed inset-0 z-[9999] bg-[#05050a] flex items-center justify-center animate-fade-in overflow-hidden">
+      <div className="w-full h-full relative flex flex-col">
+        
+        {/* Connection Status Overlays */}
+        {(callStatus === CALL_STATUS.RINGING || callStatus === CALL_STATUS.INITIATING || callStatus === CALL_STATUS.CONNECTING || callStatus === CALL_STATUS.ENDED) && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#05050a]/80 backdrop-blur-3xl animate-fade-in">
+             <div className="relative mb-8">
+                <div className="absolute inset-0 bg-violet-600/20 rounded-full animate-ping" />
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-3xl font-bold text-white shadow-2xl shadow-violet-600/40 relative">
+                  {remoteUserName.charAt(0).toUpperCase()}
+                </div>
+             </div>
+             
+             <h2 className="text-2xl font-bold text-white mb-2">{remoteUserName}</h2>
+             
+             {callStatus === CALL_STATUS.RINGING && (
+               <div className="flex flex-col items-center gap-4">
+                 <p className="text-violet-400 font-medium animate-pulse">Incoming call...</p>
+                 <div className="flex items-center gap-1.5 h-6">
+                    {[0, 1, 2, 3].map((i) => (
+                      <span key={i} className="w-1.5 bg-emerald-500 rounded-full wave-bar" style={{ animationDelay: `${i * 0.2}s` }} />
+                    ))}
+                 </div>
+               </div>
+             )}
+             
+             {callStatus === CALL_STATUS.INITIATING && <p className="text-slate-400 animate-pulse">Calling...</p>}
+             {callStatus === CALL_STATUS.CONNECTING && <p className="text-slate-400 animate-pulse">Connecting secure line...</p>}
+             {callStatus === CALL_STATUS.ENDED && <p className="text-rose-400 font-medium animate-fade-in">Call ended</p>}
           </div>
         )}
 
-        {callStatus === CALL_STATUS.INITIATING && (
-          <div style={styles.statusOverlay}>
-            <div style={styles.statusText}>Calling {remoteUserName}...</div>
+        {/* Video Containers */}
+        <div className="flex-1 relative bg-black overflow-hidden">
+          <video 
+            ref={remoteVideoRef} 
+            autoPlay 
+            playsInline 
+            className="w-full h-full object-cover transition-all duration-700" 
+            style={{ filter: remoteStream ? 'none' : 'blur(20px) grayscale(1)' }}
+          />
+          
+          <div className="absolute top-8 left-8 z-30 pointer-events-none">
+             <div className="glass px-4 py-2 rounded-full flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[11px] font-bold tracking-widest uppercase text-white/80">Encrypted</span>
+             </div>
           </div>
-        )}
 
-        {callStatus === CALL_STATUS.CONNECTING && (
-          <div style={styles.statusOverlay}>
-            <div style={styles.statusText}>Connecting...</div>
-          </div>
-        )}
-
-        {callStatus === CALL_STATUS.ENDED && (
-          <div style={styles.statusOverlay}>
-            <div style={styles.statusText}>Call ended</div>
-          </div>
-        )}
-
-        <div style={styles.videosContainer}>
-          <video ref={remoteVideoRef} autoPlay playsInline style={styles.remoteVideo} />
-          <video ref={localVideoRef} autoPlay playsInline muted style={styles.localVideo} />
+          <video 
+            ref={localVideoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            className={`absolute bottom-28 right-8 w-40 md:w-60 aspect-video rounded-2xl md:rounded-3xl object-cover shadow-2xl transition-all duration-500 z-30 border border-white/10 ${!videoEnabled ? 'opacity-0 scale-95' : 'opacity-100'}`}
+          />
         </div>
 
-        <div style={styles.controls}>
-          {callStatus === CALL_STATUS.CONNECTED && (
-            <>
-              <button
-                onClick={toggleAudio}
-                style={{ ...styles.controlBtn, ...(audioEnabled ? {} : styles.controlOff) }}
+        {/* Floating Controls */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 animate-slide-up">
+           <div className="glass px-8 py-4 rounded-[32px] flex items-center gap-6 shadow-2xl ring-1 ring-white/10">
+              <button 
+                onClick={toggleAudio} 
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${audioEnabled ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'}`}
               >
                 {audioEnabled ? micIcon : micOffIcon}
               </button>
-              <button onClick={endCall} style={styles.endCallBtn}>
+              
+              <button 
+                onClick={endCall} 
+                className="w-16 h-16 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-2xl shadow-rose-600/40 hover:bg-rose-500 transition-all active:scale-90"
+              >
                 {endCallIcon}
               </button>
-              <button
-                onClick={toggleVideo}
-                style={{ ...styles.controlBtn, ...(videoEnabled ? {} : styles.controlOff) }}
+              
+              <button 
+                onClick={toggleVideo} 
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${videoEnabled ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'}`}
               >
                 {videoEnabled ? videoIcon : videoOffIcon}
               </button>
-            </>
-          )}
-          {(callStatus === CALL_STATUS.INITIATING ||
-            callStatus === CALL_STATUS.RINGING ||
-            callStatus === CALL_STATUS.CONNECTING) && (
-            <button onClick={endCall} style={styles.endCallBtn}>
-              {endCallIcon}
-            </button>
-          )}
+           </div>
         </div>
       </div>
     </div>
@@ -331,7 +350,7 @@ export default function VideoCall({
 }
 
 const micIcon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
     <line x1="12" y1="19" x2="12" y2="23" />
@@ -340,7 +359,7 @@ const micIcon = (
 )
 
 const micOffIcon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="1" y1="1" x2="23" y2="23" />
     <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
     <path d="M15 9.34V4a3 3 0 0 0-5.94-.6" />
@@ -351,14 +370,14 @@ const micOffIcon = (
 )
 
 const videoIcon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="23 7 16 12 23 17 23 7" />
     <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
   </svg>
 )
 
 const videoOffIcon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="1" y1="1" x2="23" y2="23" />
     <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2" />
     <path d="M17 9l3-3v12l-3-3" />
@@ -367,120 +386,7 @@ const videoOffIcon = (
 )
 
 const endCallIcon = (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
   </svg>
 )
-
-const styles = {
-  overlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: '#000',
-    zIndex: 9999,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  container: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  videosContainer: {
-    flex: 1,
-    position: 'relative',
-    background: '#111',
-  },
-  remoteVideo: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  localVideo: {
-    position: 'absolute',
-    bottom: '80px',
-    right: '16px',
-    width: '160px',
-    height: '120px',
-    borderRadius: '12px',
-    objectFit: 'cover',
-    border: '2px solid rgba(255,255,255,0.3)',
-    background: '#222',
-  },
-  controls: {
-    position: 'absolute',
-    bottom: '24px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '12px 24px',
-    borderRadius: '40px',
-    background: 'rgba(0,0,0,0.6)',
-    backdropFilter: 'blur(8px)',
-  },
-  controlBtn: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    border: 'none',
-    background: 'rgba(255,255,255,0.15)',
-    color: '#fff',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s',
-  },
-  controlOff: {
-    background: '#e53935',
-  },
-  endCallBtn: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    border: 'none',
-    background: '#e53935',
-    color: '#fff',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s',
-  },
-  statusOverlay: {
-    position: 'absolute',
-    inset: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: '#111',
-    gap: '16px',
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: '18px',
-    fontWeight: 500,
-  },
-  ringingIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    height: '40px',
-  },
-  ringBar: {
-    width: '4px',
-    height: '100%',
-    background: '#4caf50',
-    borderRadius: '2px',
-    animation: 'waveform 0.8s ease-in-out infinite alternate',
-  },
-}

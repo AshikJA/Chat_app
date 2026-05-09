@@ -14,10 +14,8 @@ function VerifyPrompt({ user, token, onLogout }) {
   const [msg, setMsg] = useState('')
   const [checking, setChecking] = useState(false)
 
-
   const handleResend = async () => {
-    setResending(true)
-    setMsg('')
+    setResending(true); setMsg('')
     try {
       const r = await fetch('/api/auth/resend-verification', {
         method: 'POST',
@@ -25,121 +23,68 @@ function VerifyPrompt({ user, token, onLogout }) {
       })
       const data = await r.json()
       setMsg(data.message || 'Verification email sent!')
-    } catch {
-      setMsg('Failed to send')
-    } finally {
-      setResending(false)
-    }
+    } catch { setMsg('Failed to send') }
+    finally { setResending(false) }
   }
 
   const handleCheckStatus = async () => {
-    setChecking(true)
-    setMsg('')
+    setChecking(true); setMsg('')
     try {
-      const r = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       const data = await r.json()
-      if (data.user?.isVerified) {
-        window.location.reload()
-      } else {
-        setMsg('Email not verified yet. Check your inbox.')
-      }
-    } catch {
-      setMsg('Failed to check status')
-    } finally {
-      setChecking(false)
-    }
+      if (data.user?.isVerified) window.location.reload()
+      else setMsg('Email not verified yet. Check your inbox.')
+    } catch { setMsg('Failed to check status') }
+    finally { setChecking(false) }
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#0f0f0f',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px',
-    }}>
-      <div style={{
-        background: '#1a1a1a',
-        borderRadius: '12px',
-        padding: '40px',
-        maxWidth: '420px',
-        width: '100%',
-        textAlign: 'center',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '50%',
-          background: '#ffc107',
-          color: '#000',
-          fontSize: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 16px',
-        }}>!</div>
-        <h1 style={{ color: '#fff', fontSize: '22px', margin: '0 0 8px' }}>Verify Your Email</h1>
-        <p style={{ color: '#888', fontSize: '14px', margin: '0 0 4px' }}>
-          You need to verify your email before using the chat.
-        </p>
-        <p style={{ color: '#666', fontSize: '13px', margin: '0 0 24px' }}>
-          A verification email was sent to <strong style={{ color: '#fff' }}>{user.email}</strong>
-        </p>
-        {msg && (
-          <p style={{ color: '#4caf50', fontSize: '13px', margin: '0 0 16px' }}>{msg}</p>
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button
-            onClick={handleResend}
-            disabled={resending}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#4f46e5',
-              color: '#fff',
-              fontSize: '15px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {resending ? 'Sending...' : 'Resend Verification Email'}
-          </button>
-          <button
-            onClick={handleCheckStatus}
-            disabled={checking}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: '1px solid #333',
-              background: 'transparent',
-              color: '#888',
-              fontSize: '15px',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
-            {checking ? 'Checking...' : 'I\'ve Verified, Check Status'}
-          </button>
-          <button
-            onClick={onLogout}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#555',
-              fontSize: '14px',
-              cursor: 'pointer',
-              marginTop: '8px',
-            }}
-          >
-            Logout
-          </button>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'radial-gradient(ellipse at 60% 20%, rgba(234,179,8,0.08) 0%, transparent 60%), #0a0a12' }}
+    >
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </div>
+
+          <h1 className="text-2xl font-bold text-white mb-2">Verify Your Email</h1>
+          <p className="text-slate-400 text-sm mb-1">A verification link was sent to</p>
+          <p className="text-amber-400 font-semibold text-sm mb-6">{user.email}</p>
+
+          {msg && (
+            <div className="mb-5 px-4 py-2.5 rounded-xl text-sm text-emerald-300 animate-fade-in" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+              {msg}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <button onClick={handleResend} disabled={resending} className="btn-primary">
+              {resending
+                ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" style={{ animation: 'spin 0.7s linear infinite' }} />Sending…</span>
+                : 'Resend Verification Email'
+              }
+            </button>
+
+            <button
+              onClick={handleCheckStatus}
+              disabled={checking}
+              className="btn-ghost w-full py-3 text-sm font-medium"
+            >
+              {checking ? 'Checking…' : "I've Verified — Check Status"}
+            </button>
+
+            <button
+              onClick={onLogout}
+              className="text-slate-600 hover:text-slate-400 text-sm transition-colors py-2"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -151,25 +96,14 @@ export default function App() {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    if (!token) {
-      setUser(null)
-      return
-    }
-    fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    if (!token) { setUser(null); return }
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user)
-        else {
-          localStorage.removeItem('token')
-          setToken(null)
-        }
+        else { localStorage.removeItem('token'); setToken(null) }
       })
-      .catch(() => {
-        localStorage.removeItem('token')
-        setToken(null)
-      })
+      .catch(() => { localStorage.removeItem('token'); setToken(null) })
   }, [token])
 
   const handleLogin = (newToken, newUser) => {
@@ -184,9 +118,7 @@ export default function App() {
     setUser(null)
   }
 
-  const handleUpdateUser = useCallback((updatedUser) => {
-    setUser(updatedUser)
-  }, [])
+  const handleUpdateUser = useCallback((updatedUser) => setUser(updatedUser), [])
 
   if (!token || !user) {
     return (

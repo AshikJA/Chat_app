@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useMediaQuery from '../hooks/useMediaQuery'
 import useSocket from '../hooks/useSocket'
 
 function timeAgo(date) {
@@ -15,9 +14,18 @@ function timeAgo(date) {
   return new Date(date).toLocaleDateString()
 }
 
+function Avatar({ name }) {
+  const colors = ['from-violet-600 to-indigo-600', 'from-pink-600 to-rose-600', 'from-emerald-600 to-teal-600', 'from-amber-600 to-orange-600', 'from-cyan-600 to-blue-600']
+  const idx = (name?.charCodeAt(0) || 0) % colors.length
+  return (
+    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${colors[idx]} flex items-center justify-center font-bold text-white flex-shrink-0 text-lg`}>
+      {(name || '?').charAt(0).toUpperCase()}
+    </div>
+  )
+}
+
 export default function FriendRequests({ user, token }) {
   const navigate = useNavigate()
-  const isMobile = useMediaQuery('(max-width: 768px)')
   const { socket } = useSocket(token)
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -25,19 +33,13 @@ export default function FriendRequests({ user, token }) {
 
   const fetchRequests = async () => {
     try {
-      const r = await fetch('/api/friends/requests', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const r = await fetch('/api/friends/requests', { headers: { Authorization: `Bearer ${token}` } })
       const data = await r.json()
       if (r.ok) setRequests(data.requests || [])
-    } catch {} finally {
-      setLoading(false)
-    }
+    } catch {} finally { setLoading(false) }
   }
 
-  useEffect(() => {
-    fetchRequests()
-  }, [token])
+  useEffect(() => { fetchRequests() }, [token])
 
   useEffect(() => {
     if (!socket) return
@@ -56,84 +58,85 @@ export default function FriendRequests({ user, token }) {
     setActionLoading((prev) => ({ ...prev, [userId]: 'accept' }))
     try {
       await fetch(`/api/friends/accept/${encodeURIComponent(userId)}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
       })
       setRequests((prev) => prev.filter((r) => r.from.userId !== userId))
-    } catch {} finally {
-      setActionLoading((prev) => ({ ...prev, [userId]: undefined }))
-    }
+    } catch {} finally { setActionLoading((prev) => ({ ...prev, [userId]: undefined })) }
   }
 
   const handleReject = async (userId) => {
     setActionLoading((prev) => ({ ...prev, [userId]: 'reject' }))
     try {
       await fetch(`/api/friends/reject/${encodeURIComponent(userId)}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        method: 'POST', headers: { Authorization: `Bearer ${token}` },
       })
       setRequests((prev) => prev.filter((r) => r.from.userId !== userId))
-    } catch {} finally {
-      setActionLoading((prev) => ({ ...prev, [userId]: undefined }))
-    }
+    } catch {} finally { setActionLoading((prev) => ({ ...prev, [userId]: undefined })) }
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.inner}>
-        <div style={styles.header}>
-          <button onClick={() => navigate('/chat')} style={styles.backBtn}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
-          <h2 style={styles.title}>Friend Requests</h2>
-          {requests.length > 0 && <span style={styles.count}>{requests.length}</span>}
-        </div>
+    <div className="min-h-screen" style={{ background: '#0a0a12' }}>
+      {/* Header */}
+      <div className="sticky top-0 z-10 px-4 py-4 flex items-center gap-3" style={{ background: 'rgba(10,10,18,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <button onClick={() => navigate('/chat')} className="icon-btn w-9 h-9">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
+        <h1 className="text-white font-bold text-lg flex-1">Friend Requests</h1>
+        {requests.length > 0 && (
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg,#7c3aed,#6366f1)' }}>
+            {requests.length}
+          </span>
+        )}
+      </div>
 
+      <div className="max-w-lg mx-auto px-4 py-6">
         {loading ? (
-          <p style={styles.loading}>Loading...</p>
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 rounded-full border-2 border-violet-500/30 border-t-violet-500" style={{ animation: 'spin 0.9s linear infinite' }} />
+          </div>
         ) : requests.length === 0 ? (
-          <div style={styles.empty}>
-            <div style={styles.emptyIcon}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.12)' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
-            <p style={styles.emptyText}>No pending friend requests</p>
+            <p className="text-slate-500 font-medium text-sm">No pending friend requests</p>
+            <p className="text-slate-600 text-xs">When someone adds you, it'll show here</p>
           </div>
         ) : (
-          <div style={styles.list}>
+          <div className="space-y-3 animate-fade-in">
             {requests.map((req) => {
-              const userData = req.from
-              const loading = actionLoading[userData.userId]
+              const ud = req.from
+              const act = actionLoading[ud.userId]
               return (
-                <div key={userData.userId} style={styles.card}>
-                  <div style={styles.avatar}>{userData.name?.charAt(0).toUpperCase() || '?'}</div>
-                  <div style={styles.info}>
-                    <span style={styles.name}>{userData.name}</span>
-                    <span style={styles.userId}>{userData.userId}</span>
-                    {userData.username && <span style={styles.username}>@{userData.username}</span>}
-                    <span style={styles.time}>{timeAgo(req.createdAt)}</span>
+                <div key={ud.userId} className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <Avatar name={ud.name} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{ud.name}</p>
+                    <p className="text-xs font-mono text-violet-400">{ud.userId}</p>
+                    {ud.username && <p className="text-xs text-slate-600">@{ud.username}</p>}
+                    <p className="text-xs text-slate-700 mt-0.5">{timeAgo(req.createdAt)}</p>
                   </div>
-                  <div style={styles.actions}>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
                     <button
-                      onClick={() => handleAccept(userData.userId)}
-                      disabled={!!loading}
-                      style={{ ...styles.acceptBtn, opacity: loading === 'accept' ? 0.6 : 1 }}
+                      onClick={() => handleAccept(ud.userId)}
+                      disabled={!!act}
+                      className="px-4 py-1.5 rounded-xl text-xs font-semibold text-white border-0 transition-all"
+                      style={{ background: act === 'accept' ? 'rgba(16,185,129,0.5)' : 'linear-gradient(135deg,#10b981,#059669)', cursor: act ? 'not-allowed' : 'pointer', opacity: act && act !== 'accept' ? 0.5 : 1 }}
                     >
-                      {loading === 'accept' ? '...' : 'Accept'}
+                      {act === 'accept' ? '…' : 'Accept'}
                     </button>
                     <button
-                      onClick={() => handleReject(userData.userId)}
-                      disabled={!!loading}
-                      style={{ ...styles.rejectBtn, opacity: loading === 'reject' ? 0.6 : 1 }}
+                      onClick={() => handleReject(ud.userId)}
+                      disabled={!!act}
+                      className="px-4 py-1.5 rounded-xl text-xs font-semibold border-0 transition-all"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', cursor: act ? 'not-allowed' : 'pointer', opacity: act && act !== 'reject' ? 0.5 : 1 }}
                     >
-                      {loading === 'reject' ? '...' : 'Reject'}
+                      {act === 'reject' ? '…' : 'Decline'}
                     </button>
                   </div>
                 </div>
@@ -144,147 +147,4 @@ export default function FriendRequests({ user, token }) {
       </div>
     </div>
   )
-}
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: '#0f0f0f',
-    color: '#fff',
-  },
-  inner: {
-    maxWidth: '520px',
-    margin: '0 auto',
-    padding: '24px 16px',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '24px',
-  },
-  backBtn: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    border: '1px solid #333',
-    background: 'transparent',
-    color: '#888',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  title: {
-    margin: 0,
-    fontSize: '20px',
-    fontWeight: 600,
-  },
-  count: {
-    background: '#8a6eff',
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 700,
-    padding: '2px 8px',
-    borderRadius: '10px',
-    lineHeight: '18px',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#666',
-    fontSize: '14px',
-    marginTop: '40px',
-  },
-  empty: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '12px',
-    marginTop: '60px',
-  },
-  emptyIcon: {
-    color: '#333',
-  },
-  emptyText: {
-    color: '#555',
-    fontSize: '15px',
-    margin: 0,
-  },
-  list: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  card: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
-    background: '#1a1a1a',
-    borderRadius: '12px',
-  },
-  avatar: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '50%',
-    background: '#8a6eff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 600,
-    fontSize: '18px',
-    flexShrink: 0,
-  },
-  info: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-    gap: '1px',
-  },
-  name: {
-    fontSize: '15px',
-    fontWeight: 500,
-  },
-  userId: {
-    fontSize: '12px',
-    color: '#8a6eff',
-    fontWeight: 600,
-  },
-  username: {
-    fontSize: '12px',
-    color: '#666',
-  },
-  time: {
-    fontSize: '11px',
-    color: '#444',
-    marginTop: '2px',
-  },
-  actions: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    flexShrink: 0,
-  },
-  acceptBtn: {
-    padding: '6px 14px',
-    borderRadius: '6px',
-    border: 'none',
-    background: '#4caf50',
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  rejectBtn: {
-    padding: '6px 14px',
-    borderRadius: '6px',
-    border: 'none',
-    background: '#e53935',
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
 }

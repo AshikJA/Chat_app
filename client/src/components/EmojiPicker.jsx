@@ -17,10 +17,10 @@ export default function EmojiPicker({ onSelect }) {
   }, [])
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        style={styles.toggle}
+        className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
         title="Add emoji"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -32,7 +32,7 @@ export default function EmojiPicker({ onSelect }) {
       </button>
 
       {open && (
-        <div style={styles.picker}>
+        <div className="absolute bottom-[110%] left-0 z-[100] animate-fade-in shadow-2xl rounded-[20px] overflow-hidden">
           <Picker
             data={data}
             onEmojiSelect={(emoji) => {
@@ -48,26 +48,4 @@ export default function EmojiPicker({ onSelect }) {
       )}
     </div>
   )
-}
-
-const styles = {
-  toggle: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    border: 'none',
-    background: 'transparent',
-    color: '#888',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  picker: {
-    position: 'absolute',
-    bottom: '44px',
-    left: '0',
-    zIndex: 100,
-  },
 }

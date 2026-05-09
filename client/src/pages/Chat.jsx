@@ -10,6 +10,20 @@ import VoiceMessage from '../components/VoiceMessage'
 import EmojiPicker from '../components/EmojiPicker'
 import FilePreview from '../components/FilePreview'
 
+function ChatAvatar({ name, src, size = 'md' }) {
+  const colors = ['from-violet-600 to-indigo-600', 'from-pink-600 to-rose-600', 'from-emerald-600 to-teal-600', 'from-amber-600 to-orange-600', 'from-cyan-600 to-blue-600']
+  const idx = (name?.charCodeAt(0) || 0) % colors.length
+  const sizeClass = size === 'lg' ? 'w-12 h-12 text-lg' : 'w-10 h-10 text-sm'
+  
+  if (src) return <img src={src} alt="" className={`${sizeClass} rounded-2xl object-cover flex-shrink-0`} />
+  
+  return (
+    <div className={`${sizeClass} rounded-2xl bg-gradient-to-br ${colors[idx]} flex items-center justify-center font-bold text-white flex-shrink-0`}>
+      {(name || '?').charAt(0).toUpperCase()}
+    </div>
+  )
+}
+
 export default function Chat({ user, token, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -346,268 +360,247 @@ export default function Chat({ user, token, onLogout }) {
   const showChat = !isMobile || selectedUser
 
   return (
-    <div style={styles.container}>
+    <div className="h-screen flex text-white overflow-hidden bg-[#0a0a12]">
+      {/* Sidebar */}
       {showSidebar && (
-        <div style={{ ...styles.sidebar, ...(isMobile ? styles.sidebarMobile : {}) }}>
-          <div style={styles.sidebarHeader}>
-            <h2 style={{ ...styles.sidebarTitle, cursor: 'pointer' }} onClick={() => navigate('/chat-list')}>Chats</h2>
-            <div style={styles.sidebarRight}>
-            <button onClick={() => navigate('/add-friend')} style={styles.profileBtn} title="Add Friend">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
-              </svg>
-            </button>
-            <div style={{ position: 'relative', display: 'inline-flex' }}>
-              <button onClick={() => navigate('/friend-requests')} style={styles.profileBtn} title="Friend Requests">
+        <div className={`flex flex-col flex-shrink-0 transition-all duration-300 border-r border-white/5 ${isMobile ? 'w-full' : 'w-80 lg:w-96'}`}>
+          <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight cursor-pointer" onClick={() => navigate('/chat-list')}>AS Chat</h2>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate('/add-friend')} className="icon-btn w-9 h-9" title="Add Friend">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M13 16v-4a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v4" />
-                  <circle cx="7" cy="8" r="3" />
-                  <path d="M21 16v-2a3 3 0 0 0-3-3h-1" />
-                  <circle cx="16" cy="6" r="2" />
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" />
                 </svg>
               </button>
-              {pendingRequests > 0 && (
-                <span style={styles.badge}>{pendingRequests > 9 ? '9+' : pendingRequests}</span>
-              )}
-            </div>
-            <button onClick={() => navigate('/profile')} style={styles.profileBtn} title="Profile">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
-              <span
-                style={{
-                  ...styles.statusDot,
-                  background: isConnected ? '#4caf50' : '#e53935',
-                }}
-              />
-              <button onClick={onLogout} style={styles.logoutBtn}>
-                Logout
+              <div className="relative">
+                <button onClick={() => navigate('/friend-requests')} className="icon-btn w-9 h-9" title="Friend Requests">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </button>
+                {pendingRequests > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-violet-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-[#0a0a12]">
+                    {pendingRequests > 9 ? '9+' : pendingRequests}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => navigate('/profile')} className="icon-btn w-9 h-9" title="Profile">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
               </button>
+              <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`} />
+              <button onClick={onLogout} className="text-xs font-semibold text-slate-500 hover:text-rose-400 transition-colors ml-1">Logout</button>
             </div>
           </div>
+
           {!user.isVerified && (
-            <div style={styles.verifyBanner}>
-              <span>Email not verified.</span>
-              <button
-                onClick={async () => {
-                  setResending(true)
-                  setResendMsg('')
-                  try {
-                    const r = await fetch('/api/auth/resend-verification', {
-                      method: 'POST',
-                      headers: { Authorization: `Bearer ${token}` },
-                    })
-                    const d = await r.json()
-                    setResendMsg(d.message || 'Sent!')
-                  } catch {
-                    setResendMsg('Failed to send')
-                  } finally {
-                    setResending(false)
-                  }
-                }}
-                disabled={resending}
-                style={styles.resendBtn}
-              >
-                {resending ? 'Sending...' : 'Resend'}
-              </button>
-              {resendMsg && <span style={{ fontSize: '11px', color: '#4caf50' }}>{resendMsg}</span>}
+            <div className="px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-[11px] text-amber-400 font-medium">
+              <span>Email verification required</span>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={async () => {
+                    setResending(true); setResendMsg('')
+                    try {
+                      const r = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { Authorization: `Bearer ${token}` }})
+                      const d = await r.json()
+                      setResendMsg(d.message || 'Sent!')
+                    } catch { setResendMsg('Error') }
+                    finally { setResending(false) }
+                  }}
+                  disabled={resending}
+                  className="underline hover:text-amber-300 disabled:opacity-50"
+                >
+                  {resending ? 'Sending...' : 'Resend link'}
+                </button>
+                {resendMsg && <span className="text-emerald-400 animate-fade-in">{resendMsg}</span>}
+              </div>
             </div>
           )}
-          <div style={styles.userList}>
-            {users.length === 0 && (
-              <div style={styles.noUsers}>No friends yet — add some!</div>
-            )}
-            {users.map((u) => (
-              <div
-                key={u._id}
-                onClick={() => setSelectedUser(u)}
-                style={{
-                  ...styles.userItem,
-                  ...(selectedUser?._id === u._id ? styles.userItemActive : {}),
-                }}
-              >
-                <div style={styles.avatar}>
-                  {u.name.charAt(0).toUpperCase()}
+
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+            {users.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-10">
+                <div className="w-16 h-16 rounded-2xl bg-violet-600/10 border border-violet-600/20 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /></svg>
                 </div>
-                <div style={styles.userInfo}>
-                  <span style={styles.userName}>{u.name}</span>
-                  <span style={styles.userEmail}>{u.email}</span>
-                </div>
-                <span
-                  style={{
-                    ...styles.onlineDot,
-                    background: onlineUsers.has(u._id) ? '#4caf50' : '#555',
-                  }}
-                />
+                <p className="text-slate-500 text-sm font-medium">No friends yet</p>
+                <button onClick={() => navigate('/add-friend')} className="text-xs font-semibold text-violet-400 hover:text-violet-300 px-4 py-2 bg-violet-600/10 rounded-xl transition-all">Add Someone</button>
               </div>
-            ))}
+            ) : (
+              users.map((u) => (
+                <div
+                  key={u._id}
+                  onClick={() => setSelectedUser(u)}
+                  className={`flex items-center gap-3 px-3 py-3.5 rounded-2xl cursor-pointer transition-all duration-200 group ${selectedUser?._id === u._id ? 'bg-violet-600/10 ring-1 ring-violet-600/20' : 'hover:bg-white/5'}`}
+                >
+                  <div className="relative">
+                    <ChatAvatar name={u.name} src={u.avatar} />
+                    <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a12] ${onlineUsers.has(u._id) ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <h3 className="text-sm font-semibold truncate">{u.name}</h3>
+                      {onlineUsers.has(u._id) && <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Live</span>}
+                    </div>
+                    <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
 
+      {/* Chat Area */}
       {showChat && (
-        <div style={{ ...styles.chatArea, ...(isMobile ? { display: 'flex' } : {}) }}>
+        <div className="flex-1 flex flex-col min-w-0 bg-[#0a0a12] relative">
           {!selectedUser ? (
-            <div style={styles.noChat}>
-              <p>Select a user to start chatting</p>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Pick a conversation</h3>
+                <p className="text-slate-500 text-sm">Select a friend to start chatting</p>
+              </div>
             </div>
           ) : (
             <>
-              <div style={styles.chatHeader}>
-                {isMobile && (
-                  <button onClick={() => setSelectedUser(null)} style={styles.backBtn}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="19" y1="12" x2="5" y2="12" />
-                      <polyline points="12 19 5 12 12 5" />
-                    </svg>
-                  </button>
-                )}
-                <div style={styles.avatarSm}>
-                  {selectedUser.name.charAt(0).toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={styles.chatHeaderName}>{selectedUser.name}</div>
-                  {typingUsers[selectedUser._id] && (
-                    <div style={styles.typingText}>typing...</div>
+              {/* Chat Header */}
+              <div className="h-16 px-4 flex items-center justify-between border-b border-white/5 bg-[#0a0a12]/80 backdrop-blur-xl z-10">
+                <div className="flex items-center gap-3 min-w-0">
+                  {isMobile && (
+                    <button onClick={() => setSelectedUser(null)} className="icon-btn w-9 h-9 mr-1">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+                    </button>
                   )}
+                  <div className="relative">
+                    <ChatAvatar name={selectedUser.name} src={selectedUser.avatar} />
+                    {onlineUsers.has(selectedUser._id) && (
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#0a0a12]" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-bold truncate leading-tight">{selectedUser.name}</h2>
+                    {typingUsers[selectedUser._id] ? (
+                      <span className="text-[11px] text-violet-400 font-medium animate-pulse">typing...</span>
+                    ) : (
+                      <span className="text-[11px] text-slate-500">{onlineUsers.has(selectedUser._id) ? 'Active now' : 'Offline'}</span>
+                    )}
+                  </div>
                 </div>
-                <button onClick={handleStartCall} style={styles.callBtn}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                </button>
+                
+                <div className="flex items-center gap-2">
+                  <button onClick={handleStartCall} className="w-10 h-10 rounded-xl bg-violet-600 hover:bg-violet-500 transition-all flex items-center justify-center shadow-lg shadow-violet-600/20 active:scale-95">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                  </button>
+                </div>
               </div>
 
-              <div style={styles.messages}>
-                {messages.map((msg, i) => {
-                  const isMine = msg.sender._id === user._id
-                  return (
-                    <div
-                      key={msg._id || i}
-                      style={{
-                        ...styles.messageRow,
-                        justifyContent: isMine ? 'flex-end' : 'flex-start',
-                      }}
-                    >
-                      <div
-                        style={{
-                          ...styles.messageBubble,
-                          background: isMine ? '#4f46e5' : '#2a2a2a',
-                          borderBottomRightRadius: isMine ? '4px' : '12px',
-                          borderBottomLeftRadius: isMine ? '12px' : '4px',
-                          maxWidth: isMobile ? '85%' : '70%',
-                        }}
-                      >
-                        {msg.type === 'text' && <span>{msg.content}</span>}
-                        {msg.type === 'voice' && (
-                          <VoiceMessage url={msg.content} />
-                        )}
-                        {msg.type === 'image' && (
-                          <img src={msg.content} alt="" style={{ maxWidth: isMobile ? '220px' : '200px', borderRadius: '8px', display: 'block' }} />
-                        )}
-                        {msg.type === 'video' && (
-                          <video controls src={msg.content} style={{ maxWidth: isMobile ? '260px' : '260px', maxHeight: isMobile ? '200px' : '200px', borderRadius: '8px', display: 'block' }} />
-                        )}
-                        <div style={styles.messageTime}>
-                          {new Date(msg.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                          {isMine && (
-                            <span style={{ marginLeft: '4px', fontSize: '11px', lineHeight: 1 }}>
-                              {msg.status === 'seen' ? (
-                                <span style={{ color: '#53b8ff' }}>✓✓</span>
-                              ) : msg.status === 'delivered' ? (
-                                <span style={{ color: '#999' }}>✓✓</span>
-                              ) : (
-                                <span style={{ color: '#666' }}>✓</span>
+              {/* Messages Container */}
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
+                <div className="flex flex-col gap-4">
+                  {messages.map((msg, i) => {
+                    const isMine = msg.sender._id === user._id
+                    const nextMsg = messages[i + 1]
+                    const sameSender = nextMsg && (nextMsg.sender._id === msg.sender._id)
+                    
+                    return (
+                      <div key={msg._id || i} className={`flex w-full ${isMine ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                        <div className={`flex flex-col max-w-[85%] md:max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
+                          <div className={`px-4 py-2.5 rounded-2xl relative shadow-lg ${isMine ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/10 text-slate-100 rounded-tl-none'}`}>
+                            {msg.type === 'text' && <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>}
+                            {msg.type === 'voice' && <VoiceMessage url={msg.content} />}
+                            {msg.type === 'image' && <img src={msg.content} alt="" className="max-w-full rounded-xl mt-1 mb-1 border border-white/5" />}
+                            {msg.type === 'video' && <video controls src={msg.content} className="max-w-full rounded-xl mt-1 mb-1 border border-white/5" />}
+                            
+                            <div className={`flex items-center gap-1.5 mt-1 text-[10px] ${isMine ? 'text-violet-200/70' : 'text-slate-500'}`}>
+                              <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              {isMine && (
+                                <span>
+                                  {msg.status === 'seen' ? <span className="text-emerald-400">✓✓</span> : msg.status === 'delivered' ? <span>✓✓</span> : <span>✓</span>}
+                                </span>
                               )}
-                            </span>
-                          )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
-                <div ref={messagesEndRef} />
+                    )
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
 
-              <div style={styles.inputArea}>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  style={{ display: 'none' }}
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingFile}
-                  style={styles.attachBtn}
-                  title="Send image or video"
-                >
-                  {uploadingFile ? (
-                    <span style={styles.spinner} />
-                  ) : (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                  )}
-                </button>
-                <EmojiPicker onSelect={handleEmojiSelect} />
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputText}
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Type a message..."
-                  style={styles.textInput}
-                />
-                <VoiceRecorder
-                  receiverId={selectedUser._id}
-                  token={token}
-                  onSent={handleVoiceSent}
-                />
-                <button onClick={handleSendMessage} style={styles.sendBtn}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                </button>
+              {/* Input Area */}
+              <div className="p-4 border-t border-white/5 bg-[#0a0a12]">
+                <div className="relative flex items-end gap-2 bg-white/5 rounded-[24px] p-2 pr-3 focus-within:bg-white/10 focus-within:ring-1 focus-within:ring-violet-600/30 transition-all">
+                  <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileSelect} className="hidden" />
+                  
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile} className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                    {uploadingFile ? (
+                      <div className="w-5 h-5 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    )}
+                  </button>
+
+                  <EmojiPicker onSelect={handleEmojiSelect} />
+                  
+                  <textarea
+                    ref={inputRef}
+                    rows={1}
+                    value={inputText}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-1 py-2.5 px-1 bg-transparent border-0 outline-none resize-none max-h-32 text-sm custom-scrollbar"
+                    style={{ height: 'auto' }}
+                    onInput={(e) => {
+                      e.target.style.height = 'auto'
+                      e.target.style.height = e.target.scrollHeight + 'px'
+                    }}
+                  />
+                  
+                  <div className="flex items-center gap-1 pb-1">
+                    <VoiceRecorder receiverId={selectedUser._id} token={token} onSent={handleVoiceSent} />
+                    <button onClick={handleSendMessage} className="w-10 h-10 bg-violet-600 hover:bg-violet-500 rounded-full flex items-center justify-center transition-all shadow-lg shadow-violet-600/20 active:scale-90 flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="ml-0.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </>
           )}
         </div>
       )}
 
+      {/* Overlays */}
       {incomingCaller && (
-        <div style={styles.incomingOverlay}>
-          <div style={{ ...styles.incomingCard, ...(isMobile ? { padding: '24px', margin: '16px' } : {}) }}>
-            <div style={styles.incomingAvatar}>
-              {incomingCaller.userName.charAt(0).toUpperCase()}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#0a0a12]/90 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-xs glass rounded-[32px] p-8 text-center flex flex-col items-center">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-violet-600/20 rounded-full animate-ping" />
+              <div className="relative">
+                <ChatAvatar name={incomingCaller.userName} size="lg" />
+              </div>
             </div>
-            <p style={styles.incomingText}>
-              Incoming call from {incomingCaller.userName}
-            </p>
-            <div style={styles.incomingActions}>
-              <button onClick={handleRejectCall} style={styles.rejectBtn}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+            <h3 className="text-xl font-bold mb-1">{incomingCaller.userName}</h3>
+            <p className="text-slate-500 text-sm mb-8 animate-pulse italic">Incoming voice call...</p>
+            
+            <div className="flex gap-6">
+              <button onClick={handleRejectCall} className="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center transition-all shadow-xl shadow-rose-600/20 active:scale-90">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
-              <button onClick={handleAcceptCall} style={styles.acceptBtn}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
+              <button onClick={handleAcceptCall} className="w-14 h-14 rounded-full bg-emerald-600 hover:bg-emerald-500 flex items-center justify-center transition-all shadow-xl shadow-emerald-600/20 active:scale-90">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
               </button>
             </div>
           </div>
@@ -623,371 +616,4 @@ export default function Chat({ user, token, onLogout }) {
       )}
     </div>
   )
-}
-
-const styles = {
-  container: {
-    display: 'flex',
-    height: '100vh',
-    background: '#0f0f0f',
-    color: '#fff',
-  },
-  sidebar: {
-    width: '320px',
-    borderRight: '1px solid #222',
-    display: 'flex',
-    flexDirection: 'column',
-    flexShrink: 0,
-  },
-  sidebarMobile: {
-    width: '100%',
-    borderRight: 'none',
-  },
-  verifyBanner: {
-    padding: '10px 16px',
-    background: 'rgba(255,193,7,0.1)',
-    borderBottom: '1px solid rgba(255,193,7,0.2)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '12px',
-    color: '#ffc107',
-    flexWrap: 'wrap',
-  },
-  resendBtn: {
-    padding: '4px 10px',
-    borderRadius: '4px',
-    border: '1px solid rgba(255,193,7,0.4)',
-    background: 'transparent',
-    color: '#ffc107',
-    fontSize: '11px',
-    cursor: 'pointer',
-  },
-  sidebarHeader: {
-    padding: '16px',
-    borderBottom: '1px solid #222',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sidebarTitle: {
-    margin: 0,
-    fontSize: '18px',
-    fontWeight: 600,
-  },
-  sidebarRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  statusDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    display: 'inline-block',
-  },
-  profileBtn: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    border: '1px solid #333',
-    background: 'transparent',
-    color: '#888',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: '-4px',
-    right: '-4px',
-    background: '#8a6eff',
-    color: '#fff',
-    fontSize: '10px',
-    fontWeight: 700,
-    minWidth: '16px',
-    height: '16px',
-    lineHeight: '16px',
-    borderRadius: '8px',
-    textAlign: 'center',
-    padding: '0 4px',
-    boxSizing: 'border-box',
-  },
-  logoutBtn: {
-    padding: '6px 12px',
-    borderRadius: '6px',
-    border: '1px solid #333',
-    background: 'transparent',
-    color: '#888',
-    fontSize: '12px',
-    cursor: 'pointer',
-  },
-  userList: {
-    flex: 1,
-    overflowY: 'auto',
-  },
-  userItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px 16px',
-    cursor: 'pointer',
-    transition: 'background 0.15s',
-  },
-  userItemActive: {
-    background: '#1a1a2e',
-  },
-  avatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    background: '#4f46e5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 600,
-    fontSize: '16px',
-    flexShrink: 0,
-  },
-  userInfo: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-  },
-  userName: {
-    fontSize: '14px',
-    fontWeight: 500,
-  },
-  userEmail: {
-    fontSize: '12px',
-    color: '#666',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-  onlineDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    flexShrink: 0,
-  },
-  chatArea: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    minWidth: 0,
-  },
-  noChat: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#555',
-    fontSize: '16px',
-  },
-  chatHeader: {
-    padding: '12px 16px',
-    borderBottom: '1px solid #222',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  backBtn: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    border: '1px solid #333',
-    background: 'transparent',
-    color: '#888',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  noUsers: {
-    padding: '32px 16px',
-    textAlign: 'center',
-    color: '#555',
-    fontSize: '14px',
-  },
-  avatarSm: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    background: '#4f46e5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 600,
-    fontSize: '14px',
-    flexShrink: 0,
-  },
-  chatHeaderName: {
-    fontSize: '15px',
-    fontWeight: 500,
-    lineHeight: 1.3,
-  },
-  typingText: {
-    fontSize: '12px',
-    color: '#4caf50',
-    fontStyle: 'italic',
-    lineHeight: 1.3,
-  },
-  callBtn: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    border: 'none',
-    background: '#4caf50',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  messages: {
-    flex: 1,
-    overflowY: 'auto',
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  messageRow: {
-    display: 'flex',
-  },
-  messageBubble: {
-    maxWidth: '70%',
-    padding: '8px 12px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    lineHeight: 1.4,
-    wordBreak: 'break-word',
-  },
-  messageTime: {
-    fontSize: '11px',
-    opacity: 0.6,
-    marginTop: '4px',
-    textAlign: 'right',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  inputArea: {
-    padding: '12px 16px',
-    borderTop: '1px solid #222',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  textInput: {
-    flex: 1,
-    padding: '10px 14px',
-    borderRadius: '8px',
-    border: '1px solid #333',
-    background: '#1a1a1a',
-    color: '#fff',
-    fontSize: '14px',
-    outline: 'none',
-  },
-  attachBtn: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    border: 'none',
-    background: 'transparent',
-    color: '#888',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  spinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255,255,255,0.3)',
-    borderTopColor: '#fff',
-    borderRadius: '50%',
-    animation: 'spin 0.6s linear infinite',
-    display: 'block',
-  },
-  sendBtn: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '50%',
-    border: 'none',
-    background: '#4f46e5',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  incomingOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'rgba(0,0,0,0.7)',
-    zIndex: 9998,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  incomingCard: {
-    background: '#1a1a1a',
-    borderRadius: '16px',
-    padding: '32px 40px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  incomingAvatar: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '50%',
-    background: '#4f46e5',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '28px',
-    fontWeight: 600,
-  },
-  incomingText: {
-    margin: 0,
-    fontSize: '16px',
-    color: '#fff',
-  },
-  incomingActions: {
-    display: 'flex',
-    gap: '24px',
-  },
-  rejectBtn: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '50%',
-    border: 'none',
-    background: '#e53935',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  acceptBtn: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '50%',
-    border: 'none',
-    background: '#4caf50',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 }

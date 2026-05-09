@@ -39,6 +39,7 @@ export default function VoiceMessage({ url }) {
   };
 
   const formatTime = (s) => {
+    if (!s || isNaN(s)) return '0:00';
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec.toString().padStart(2, '0')}`;
@@ -49,13 +50,13 @@ export default function VoiceMessage({ url }) {
     const x = e.clientX - rect.left;
     const pct = x / rect.width;
     const audio = audioRef.current;
-    if (audio) {
+    if (audio && audio.duration) {
       audio.currentTime = pct * audio.duration;
     }
   };
 
   return (
-    <div style={styles.container}>
+    <div className="flex items-center gap-3 py-1 px-1 min-w-[160px] max-w-full group">
       <audio
         ref={audioRef}
         src={url}
@@ -63,89 +64,51 @@ export default function VoiceMessage({ url }) {
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
       />
-      <button onClick={togglePlay} style={styles.playBtn}>
-        {playing ? '\u23F8' : '\u25B6'}
+      
+      <button 
+        onClick={togglePlay} 
+        className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all flex-shrink-0 active:scale-90"
+      >
+        {playing ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="ml-0.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+        )}
       </button>
-      <div style={styles.waveform} onClick={seek}>
-        <div style={{ ...styles.progressFill, width: `${progress}%` }} />
-        <div style={styles.bars}>
-          {Array.from({ length: 20 }).map((_, i) => (
-            <span
-              key={i}
-              style={{
-                ...styles.bar,
-                animation: playing ? 'waveform 0.6s ease-in-out infinite alternate' : undefined,
-                animationDelay: `${i * 0.1}s`,
-                height: playing ? undefined : '16px',
-                opacity: playing ? undefined : 0.4,
-              }}
-            />
-          ))}
+
+      <div className="flex-1 flex flex-col gap-1.5">
+        <div className="relative h-6 flex items-center cursor-pointer" onClick={seek}>
+          {/* Track */}
+          <div className="absolute inset-0 h-1 my-auto bg-white/10 rounded-full" />
+          {/* Progress */}
+          <div className="absolute left-0 h-1 my-auto bg-white/40 rounded-full transition-[width] duration-100 ease-linear" style={{ width: `${progress}%` }} />
+          {/* Handle */}
+          <div 
+            className="absolute h-3 w-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" 
+            style={{ left: `calc(${progress}% - 6px)`, top: '50%', transform: 'translateY(-50%)' }} 
+          />
+          
+          {/* Animated Bars */}
+          <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-0.5 opacity-30">
+            {Array.from({ length: 18 }).map((_, i) => (
+              <span
+                key={i}
+                className={`w-[2px] bg-white rounded-full ${playing ? 'wave-bar' : 'h-1.5'}`}
+                style={{ 
+                  animationDelay: `${i * 0.08}s`,
+                  height: playing ? undefined : '6px',
+                  opacity: (i / 18) * 100 < progress ? 1 : 0.4
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center text-[10px] font-mono font-medium text-white/50 tabular-nums">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
-      <span style={styles.time}>{formatTime(playing ? currentTime : duration)}</span>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '6px 8px',
-    borderRadius: '8px',
-    minWidth: '140px',
-    maxWidth: '100%',
-  },
-  playBtn: {
-    background: 'none',
-    border: 'none',
-    fontSize: '18px',
-    cursor: 'pointer',
-    padding: '2px',
-    lineHeight: 1,
-    flexShrink: 0,
-  },
-  waveform: {
-    flex: 1,
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    position: 'relative',
-    cursor: 'pointer',
-    overflow: 'hidden',
-    borderRadius: '4px',
-  },
-  progressFill: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    background: 'rgba(255,255,255,0.2)',
-    borderRadius: '4px',
-    transition: 'width 0.1s linear',
-    pointerEvents: 'none',
-  },
-  bars: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '2px',
-    width: '100%',
-    height: '100%',
-    padding: '0 2px',
-  },
-  bar: {
-    flex: 1,
-    background: '#fff',
-    borderRadius: '2px',
-    minHeight: '4px',
-  },
-  time: {
-    fontSize: '11px',
-    fontVariantNumeric: 'tabular-nums',
-    flexShrink: 0,
-    minWidth: '28px',
-    textAlign: 'right',
-  },
-};
