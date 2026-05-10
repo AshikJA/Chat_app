@@ -4,7 +4,7 @@ import useMediaQuery from '../hooks/useMediaQuery';
 import axios from 'axios';
 
 export default function VoiceRecorder({ receiverId, token, onSent }) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery('(max-width: 480px)');
   const { isRecording, duration, audioBlob, error, startRecording, stopRecording, clearRecording } = useAudioRecorder();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');

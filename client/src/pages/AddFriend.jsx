@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
 
 function Avatar({ name }) {
   const colors = ['from-violet-600 to-indigo-600', 'from-pink-600 to-rose-600', 'from-emerald-600 to-teal-600', 'from-amber-600 to-orange-600', 'from-cyan-600 to-blue-600']
@@ -26,7 +27,7 @@ export default function AddFriend({ user, token }) {
     if (!trimmed) return
     setLoading(true); setError(''); setResults(null)
     try {
-      const r = await fetch(`/api/friends/search?query=${encodeURIComponent(trimmed)}`, {
+      const r = await apiFetch(`/api/friends/search?query=${encodeURIComponent(trimmed)}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await r.json()
@@ -39,7 +40,7 @@ export default function AddFriend({ user, token }) {
 
   const handleSendRequest = async (targetUserId) => {
     try {
-      const r = await fetch(`/api/friends/request/${encodeURIComponent(targetUserId)}`, {
+      const r = await apiFetch(`/api/friends/request/${encodeURIComponent(targetUserId)}`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       })
       const data = await r.json()
@@ -57,7 +58,7 @@ export default function AddFriend({ user, token }) {
     )
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0a12' }}>
+    <div className="min-h-[100dvh]" style={{ background: '#0a0a12' }}>
       <div className="sticky top-0 z-10 px-4 py-4 flex items-center gap-3" style={{ background: 'rgba(10,10,18,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => navigate('/chat')} className="icon-btn w-9 h-9">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

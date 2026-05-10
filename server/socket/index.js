@@ -94,10 +94,12 @@ module.exports = (io) => {
           { status: 'seen' }
         );
         if (result.modifiedCount > 0) {
-          // Notify ALL tabs of the sender
+          // Notify ALL tabs of the sender (the person who sent the messages)
           io.to(senderId).emit('message:seen', {
             by: userId,
           });
+          // Notify other tabs of the receiver (the person who read the messages)
+          io.to(userId).emit('message:sync_read', { senderId });
         }
       } catch {}
     });

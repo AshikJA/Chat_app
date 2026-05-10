@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useSocket from '../hooks/useSocket'
+import { apiFetch } from '../utils/api'
 
 function timeAgo(date) {
   if (!date) return ''
@@ -33,13 +34,13 @@ export default function ChatList({ user, token, onLogout }) {
   const [pendingRequests, setPendingRequests] = useState(0)
 
   useEffect(() => {
-    fetch('/api/friends/list', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/friends/list', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => setFriends(data.friends || []))
   }, [token])
 
   useEffect(() => {
-    fetch('/api/friends/requests', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/friends/requests', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => setPendingRequests(data.requests?.length || 0))
       .catch(() => {})
@@ -54,7 +55,7 @@ export default function ChatList({ user, token, onLogout }) {
     setUnreadCounts(prev => ({ ...initialCounts, ...prev }))
 
     friends.forEach((friend) => {
-      fetch(`/api/messages?userId=${friend._id}`, {
+      apiFetch(`/api/messages?userId=${friend._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
@@ -90,8 +91,15 @@ export default function ChatList({ user, token, onLogout }) {
         setUnreadCounts((prev) => ({ ...prev, [senderId]: (prev[senderId] || 0) + 1 }))
       }
     }
+    const handleSyncRead = ({ senderId }) => {
+      setUnreadCounts((prev) => ({ ...prev, [senderId]: 0 }))
+    }
     socket.on('message:receive', handleReceive)
-    return () => socket.off('message:receive', handleReceive)
+    socket.on('message:sync_read', handleSyncRead)
+    return () => {
+      socket.off('message:receive', handleReceive)
+      socket.off('message:sync_read', handleSyncRead)
+    }
   }, [socket, user._id])
 
   const handleSelect = (friend) => {
@@ -109,7 +117,7 @@ export default function ChatList({ user, token, onLogout }) {
   }
 
   return (
-    <div className="h-screen flex" style={{ background: '#0a0a12' }}>
+    <div className="h-[100dvh] flex overflow-hidden select-none" style={{ background: '#0a0a12' }}>
       {/* Sidebar */}
       <div className="w-full max-w-sm flex flex-col flex-shrink-0" style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
         {/* Header */}
@@ -250,7 +258,7 @@ export default function ChatList({ user, token, onLogout }) {
       </div>
 
       {/* Right placeholder */}
-      <div className="flex-1 hidden md:flex flex-col items-center justify-center gap-4">
+      <div className="flex-1 hidden min-[481px]:flex flex-col items-center justify-center gap-4 border-l border-white/5">
         <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.15)' }}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

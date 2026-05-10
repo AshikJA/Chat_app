@@ -14,14 +14,17 @@
   body {
     margin: 0;
     background: #0a0a12;
-    min-height: 100vh;
+    min-height: 100dvh;
+    height: 100dvh;
     color: white;
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   #root {
-    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   ::-webkit-scrollbar {

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { io } from 'socket.io-client'
 import { Buffer } from 'buffer'
 
+import { getSocketUrl } from '../utils/api'
+
 if (typeof window !== 'undefined' && !window.Buffer) {
   window.Buffer = Buffer
 }
@@ -14,7 +16,7 @@ export default function useSocket(token) {
   useEffect(() => {
     if (!token) return
 
-    const socket = io('/', {
+    const socket = io(getSocketUrl(), {
       auth: { token },
       transports: ['polling', 'websocket'],
       reconnectionAttempts: 10,

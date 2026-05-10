@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import axios from 'axios'
+import { apiFetch, apiAxios } from '../utils/api'
 import useSocket from '../hooks/useSocket'
 import useEncryption from '../hooks/useEncryption'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -27,7 +27,7 @@ function ChatAvatar({ name, src, size = 'md' }) {
 export default function Chat({ user, token, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isMobile = useMediaQuery('(max-width: 480px)')
   const { socket, isConnected, onlineUsers } = useSocket(token)
   const [users, setUsers] = useState([])
   const { ensureKeyPair, preloadKeys, encrypt, decrypt } = useEncryption(users)
@@ -49,7 +49,7 @@ export default function Chat({ user, token, onLogout }) {
   const [pendingRequests, setPendingRequests] = useState(0)
 
   useEffect(() => {
-    fetch('/api/friends/requests', {
+    apiFetch('/api/friends/requests', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -60,7 +60,7 @@ export default function Chat({ user, token, onLogout }) {
   useEffect(() => {
     if (!socket) return
     const refresh = () => {
-      fetch('/api/friends/requests', {
+      apiFetch('/api/friends/requests', {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
@@ -78,7 +78,7 @@ export default function Chat({ user, token, onLogout }) {
   }, [socket, token])
 
   useEffect(() => {
-    fetch('/api/friends/list', {
+    apiFetch('/api/friends/list', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -98,7 +98,7 @@ export default function Chat({ user, token, onLogout }) {
       const publicKey = await ensureKeyPair()
       if (publicKey) {
         try {
-          await fetch('/api/auth/public-key', {
+          await apiFetch('/api/auth/public-key', {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export default function Chat({ user, token, onLogout }) {
     if (!selectedUser) return
     setMessages([])
     setTypingUsers({})
-    fetch(`/api/messages?userId=${selectedUser._id}`, {
+    apiFetch(`/api/messages?userId=${selectedUser._id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -301,7 +301,7 @@ export default function Chat({ user, token, onLogout }) {
       formData.append('receiverId', selectedUser._id)
 
       const endpoint = file.type.startsWith('video/') ? '/api/upload/video' : '/api/upload/image'
-      const res = await axios.post(endpoint, formData, {
+      const res = await apiAxios.post(endpoint, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -342,6 +342,23 @@ export default function Chat({ user, token, onLogout }) {
     []
   )
 
+  const handleDownload = async (url, filename) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename || 'as-chat-media'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      console.error('Download failed:', error)
+    }
+  }
+
   if (activeCall) {
     return (
       <VideoCall
@@ -360,10 +377,10 @@ export default function Chat({ user, token, onLogout }) {
   const showChat = !isMobile || selectedUser
 
   return (
-    <div className="h-screen flex text-white overflow-hidden bg-[#0a0a12]">
+    <div className="h-[100dvh] flex text-white overflow-hidden bg-[#0a0a12] select-none">
       {/* Sidebar */}
       {showSidebar && (
-        <div className={`flex flex-col flex-shrink-0 transition-all duration-300 border-r border-white/5 ${isMobile ? 'w-full' : 'w-80 lg:w-96'}`}>
+        <div className={`flex flex-col flex-shrink-0 transition-all duration-300 border-r border-white/5 ${isMobile ? 'w-full' : 'w-64 sm:w-72 lg:w-80'}`}>
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight cursor-pointer" onClick={() => navigate('/chat-list')}>AS Chat</h2>
             <div className="flex items-center gap-2">
@@ -404,7 +421,7 @@ export default function Chat({ user, token, onLogout }) {
                   onClick={async () => {
                     setResending(true); setResendMsg('')
                     try {
-                      const r = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { Authorization: `Bearer ${token}` }})
+                      const r = await apiFetch('/api/auth/resend-verification', { method: 'POST', headers: { Authorization: `Bearer ${token}` }})
                       const d = await r.json()
                       setResendMsg(d.message || 'Sent!')
                     } catch { setResendMsg('Error') }
@@ -510,18 +527,48 @@ export default function Chat({ user, token, onLogout }) {
                     
                     return (
                       <div key={msg._id || i} className={`flex w-full ${isMine ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                        <div className={`flex flex-col max-w-[85%] md:max-w-[70%] ${isMine ? 'items-end' : 'items-start'}`}>
-                          <div className={`px-4 py-2.5 rounded-2xl relative shadow-lg ${isMine ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/10 text-slate-100 rounded-tl-none'}`}>
+                        <div className={`flex flex-col max-w-[92%] sm:max-w-[85%] md:max-w-[75%] ${isMine ? 'items-end' : 'items-start'}`}>
+                          <div className={`px-4 py-2.5 rounded-2xl relative shadow-lg group/bubble ${isMine ? 'bg-violet-600 text-white rounded-tr-none' : 'bg-white/10 text-slate-100 rounded-tl-none'}`}>
                             {msg.type === 'text' && <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>}
                             {msg.type === 'voice' && <VoiceMessage url={msg.content} />}
-                            {msg.type === 'image' && <img src={msg.content} alt="" className="max-w-full rounded-xl mt-1 mb-1 border border-white/5" />}
-                            {msg.type === 'video' && <video controls src={msg.content} className="max-w-full rounded-xl mt-1 mb-1 border border-white/5" />}
+                            
+                            {(msg.type === 'image' || msg.type === 'video') && (
+                              <div className="relative group/media mt-1 mb-1">
+                                {msg.type === 'image' && (
+                                  <img 
+                                    src={msg.content} 
+                                    alt="" 
+                                    className="max-w-full max-h-[400px] rounded-xl object-contain border border-white/5 cursor-pointer hover:opacity-90 transition-opacity" 
+                                    onClick={() => window.open(msg.content, '_blank')}
+                                  />
+                                )}
+                                {msg.type === 'video' && (
+                                  <video 
+                                    controls 
+                                    src={msg.content} 
+                                    className="max-w-full max-h-[400px] rounded-xl border border-white/5" 
+                                  />
+                                )}
+                                
+                                {/* Download Overlay */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDownload(msg.content, `as-chat-${msg.type}-${Date.now()}`)
+                                  }}
+                                  className="absolute top-2 right-2 p-2 bg-black/60 backdrop-blur-md rounded-lg text-white opacity-0 group-hover/media:opacity-100 transition-all hover:bg-black/80 z-20"
+                                  title="Download"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                </button>
+                              </div>
+                            )}
                             
                             <div className={`flex items-center gap-1.5 mt-1 text-[10px] ${isMine ? 'text-violet-200/70' : 'text-slate-500'}`}>
                               <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {isMine && (
                                 <span>
-                                  {msg.status === 'seen' ? <span className="text-emerald-400">✓✓</span> : msg.status === 'delivered' ? <span>✓✓</span> : <span>✓</span>}
+                                  {msg.status === 'seen' ? <span className="text-emerald-400 font-bold">✓✓</span> : msg.status === 'delivered' ? <span>✓✓</span> : <span>✓</span>}
                                 </span>
                               )}
                             </div>
@@ -536,10 +583,10 @@ export default function Chat({ user, token, onLogout }) {
 
               {/* Input Area */}
               <div className="p-4 border-t border-white/5 bg-[#0a0a12]">
-                <div className="relative flex items-end gap-2 bg-white/5 rounded-[24px] p-2 pr-3 focus-within:bg-white/10 focus-within:ring-1 focus-within:ring-violet-600/30 transition-all">
+                <div className="relative flex items-end gap-1.5 bg-white/5 rounded-[22px] p-1.5 pr-2 focus-within:bg-white/10 focus-within:ring-1 focus-within:ring-violet-600/30 transition-all">
                   <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleFileSelect} className="hidden" />
                   
-                  <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile} className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile} className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors">
                     {uploadingFile ? (
                       <div className="w-5 h-5 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
                     ) : (
@@ -561,7 +608,7 @@ export default function Chat({ user, token, onLogout }) {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="flex-1 py-2.5 px-1 bg-transparent border-0 outline-none resize-none max-h-32 text-sm custom-scrollbar"
+                    className="flex-1 py-2.5 px-0 bg-transparent border-0 outline-none resize-none max-h-32 text-sm custom-scrollbar w-0"
                     style={{ height: 'auto' }}
                     onInput={(e) => {
                       e.target.style.height = 'auto'
@@ -569,10 +616,10 @@ export default function Chat({ user, token, onLogout }) {
                     }}
                   />
                   
-                  <div className="flex items-center gap-1 pb-1">
+                  <div className="flex items-center gap-0.5 pb-1 flex-shrink-0">
                     <VoiceRecorder receiverId={selectedUser._id} token={token} onSent={handleVoiceSent} />
-                    <button onClick={handleSendMessage} className="w-10 h-10 bg-violet-600 hover:bg-violet-500 rounded-full flex items-center justify-center transition-all shadow-lg shadow-violet-600/20 active:scale-90 flex-shrink-0">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="ml-0.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <button onClick={handleSendMessage} className="w-9 h-9 bg-violet-600 hover:bg-violet-500 rounded-full flex items-center justify-center transition-all shadow-lg shadow-violet-600/20 active:scale-90 flex-shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="ml-0.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                     </button>
                   </div>
                 </div>

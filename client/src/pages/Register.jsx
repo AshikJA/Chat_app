@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
 
 export default function Register({ onRegister }) {
   const [name, setName] = useState('')
@@ -16,7 +17,7 @@ export default function Register({ onRegister }) {
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
@@ -42,7 +43,7 @@ export default function Register({ onRegister }) {
 
   if (registered) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+      <div className="min-h-[100dvh] flex items-center justify-center p-4" style={bgStyle}>
         <div className="w-full max-w-md animate-slide-up">
           <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
@@ -66,7 +67,7 @@ export default function Register({ onRegister }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={bgStyle}>
+    <div className="min-h-[100dvh] flex items-center justify-center p-4" style={bgStyle}>
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)', filter: 'blur(40px)' }} />
         <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', filter: 'blur(40px)' }} />

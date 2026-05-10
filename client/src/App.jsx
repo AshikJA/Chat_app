@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { apiFetch } from './utils/api'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
@@ -17,7 +18,7 @@ function VerifyPrompt({ user, token, onLogout }) {
   const handleResend = async () => {
     setResending(true); setMsg('')
     try {
-      const r = await fetch('/api/auth/resend-verification', {
+      const r = await apiFetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -30,7 +31,7 @@ function VerifyPrompt({ user, token, onLogout }) {
   const handleCheckStatus = async () => {
     setChecking(true); setMsg('')
     try {
-      const r = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      const r = await apiFetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       const data = await r.json()
       if (data.user?.isVerified) window.location.reload()
       else setMsg('Email not verified yet. Check your inbox.')
@@ -40,7 +41,7 @@ function VerifyPrompt({ user, token, onLogout }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-[100dvh] flex items-center justify-center p-4"
       style={{ background: 'radial-gradient(ellipse at 60% 20%, rgba(234,179,8,0.08) 0%, transparent 60%), #0a0a12' }}
     >
       <div className="w-full max-w-md animate-slide-up">
@@ -97,7 +98,7 @@ export default function App() {
 
   useEffect(() => {
     if (!token) { setUser(null); return }
-    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user)

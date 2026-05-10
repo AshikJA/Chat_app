@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
 import useSocket from '../hooks/useSocket'
 
 function timeAgo(date) {
@@ -33,7 +34,7 @@ export default function FriendRequests({ user, token }) {
 
   const fetchRequests = async () => {
     try {
-      const r = await fetch('/api/friends/requests', { headers: { Authorization: `Bearer ${token}` } })
+      const r = await apiFetch('/api/friends/requests', { headers: { Authorization: `Bearer ${token}` } })
       const data = await r.json()
       if (r.ok) setRequests(data.requests || [])
     } catch {} finally { setLoading(false) }
@@ -57,7 +58,7 @@ export default function FriendRequests({ user, token }) {
   const handleAccept = async (userId) => {
     setActionLoading((prev) => ({ ...prev, [userId]: 'accept' }))
     try {
-      await fetch(`/api/friends/accept/${encodeURIComponent(userId)}`, {
+      await apiFetch(`/api/friends/accept/${encodeURIComponent(userId)}`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       })
       setRequests((prev) => prev.filter((r) => r.from.userId !== userId))
@@ -67,7 +68,7 @@ export default function FriendRequests({ user, token }) {
   const handleReject = async (userId) => {
     setActionLoading((prev) => ({ ...prev, [userId]: 'reject' }))
     try {
-      await fetch(`/api/friends/reject/${encodeURIComponent(userId)}`, {
+      await apiFetch(`/api/friends/reject/${encodeURIComponent(userId)}`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` },
       })
       setRequests((prev) => prev.filter((r) => r.from.userId !== userId))
@@ -75,7 +76,7 @@ export default function FriendRequests({ user, token }) {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0a12' }}>
+    <div className="min-h-[100dvh]" style={{ background: '#0a0a12' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 px-4 py-4 flex items-center gap-3" style={{ background: 'rgba(10,10,18,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => navigate('/chat')} className="icon-btn w-9 h-9">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams()
@@ -10,7 +11,7 @@ export default function VerifyEmail() {
     const token = searchParams.get('token')
     if (!token) { setStatus('error'); setMessage('No verification token provided'); return }
 
-    fetch('/api/auth/verify-email', {
+    apiFetch('/api/auth/verify-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token }),
@@ -28,7 +29,7 @@ export default function VerifyEmail() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-[100dvh] flex items-center justify-center p-4"
       style={{ background: 'radial-gradient(ellipse at 60% 20%, rgba(124,58,237,0.15) 0%, transparent 60%), #0a0a12' }}
     >
       <div className="w-full max-w-md animate-slide-up">

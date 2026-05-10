@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiFetch } from '../utils/api'
 
 function Avatar({ name, src, size = 96 }) {
   const colors = ['from-violet-600 to-indigo-600', 'from-pink-600 to-rose-600', 'from-emerald-600 to-teal-600', 'from-amber-600 to-orange-600', 'from-cyan-600 to-blue-600']
@@ -40,7 +41,7 @@ export default function Profile({ user, token, onUpdateUser, onLogout }) {
     try {
       const fd = new FormData()
       fd.append('avatar', file)
-      const r = await fetch('/api/auth/upload-avatar', {
+      const r = await apiFetch('/api/auth/upload-avatar', {
         method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
       })
       const data = await r.json()
@@ -60,7 +61,7 @@ export default function Profile({ user, token, onUpdateUser, onLogout }) {
     setSaving(true)
     try {
       if (updates.name) {
-        const r = await fetch('/api/auth/update-profile', {
+        const r = await apiFetch('/api/auth/update-profile', {
           method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ name: updates.name }),
         })
@@ -69,7 +70,7 @@ export default function Profile({ user, token, onUpdateUser, onLogout }) {
         onUpdateUser({ ...user, name: data.user.name })
       }
       if (updates.username) {
-        const r = await fetch('/api/auth/update-profile', {
+        const r = await apiFetch('/api/auth/update-profile', {
           method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ username: updates.username }),
         })
@@ -90,7 +91,7 @@ export default function Profile({ user, token, onUpdateUser, onLogout }) {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4" style={{ background: '#0a0a12' }}>
+    <div className="min-h-[100dvh] py-8 px-4" style={{ background: '#0a0a12' }}>
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
